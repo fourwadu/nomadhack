@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,19 +8,32 @@ datasource db {
 }
 
 model Account {
-  id      Int     @id @default(autoincrement())
-  address String  @unique
-  assets  Asset[]
+  id         Int        @id @default(autoincrement())
+  address    String     @unique
+  exploits   Exploit[]
+  recoveries Recovery[]
 }
 
-model Asset {
+model Exploit {
   id Int @id @default(autoincrement())
 
+  timestamp       DateTime
   contractAddress String
+  transactionHash String
+  amount          Float    @default(0)
 
-  amountStolen    Float @default(0)
-  amountRecovered Float @default(0)
+  Account   Account? @relation(fields: [accountId], references: [address])
+  accountId String
+}
 
-  Account        Account? @relation(fields: [accountAddress], references: [address])
-  accountAddress String?
+model Recovery {
+  id Int @id @default(autoincrement())
+
+  timestamp       DateTime
+  contractAddress String
+  transactionHash String
+  amount          Float    @default(0)
+
+  Account   Account? @relation(fields: [accountId], references: [address])
+  accountId String
 }

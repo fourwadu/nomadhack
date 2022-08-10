@@ -4,6 +4,7 @@ import { validateRequest } from "zod-express-middleware";
 import { z } from "zod";
 
 import { ApiError } from "./utils/api";
+import update from "./web3/updateExploitEvents";
 
 const app = express();
 
@@ -12,7 +13,7 @@ const router = express.Router();
 
 const prisma = new PrismaClient();
 
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+router.use((err: any, req: Request, res: Response, next: NextFunction) => {
 	if (err instanceof ApiError) {
 		return res
 			.json({ error: err.pub ? err.message : "GENERIC_SERVER_ERROR" })
@@ -21,13 +22,26 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 router.post(
-	"/account",
+	"/wallets",
 	validateRequest({ body: z.object({ address: z.string().optional() }) }),
 	async (req, res) => {
-		const payload = req.body.address;
+		const address = req.body.address;
 
-		if (!payload) return await prisma;
+		if (address)
+			return res.json(
+				await prisma.account.findUnique({
+					where: { address },
+					include: { exploits: true },
+				})
+			);
+
+		return res.json(
+			await prisma.account.findMany({ include: { exploits: true } })
+		);
 	}
 );
 
-console.log("hi");
+app.use("/api", router);
+
+app.listen(3000);
+console.log("Listening");

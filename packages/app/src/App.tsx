@@ -1,3 +1,5 @@
+import React from "react";
+
 function App() {
 	return (
 		<div className="h-full w-full flex flex-row background-gradient p-8">
