@@ -1,47 +1,28 @@
 import { PrismaClient } from "@prisma/client";
 import express, { Request, Response, NextFunction } from "express";
-import { validateRequest } from "zod-express-middleware";
-import { z } from "zod";
-
-import { ApiError } from "./utils/api";
-import update from "./web3/updateExploitEvents";
+import Redis from "ioredis";
 
 const app = express();
-
-app.use(express.json());
+const prisma = new PrismaClient();
+const client = new Redis();
 const router = express.Router();
 
-const prisma = new PrismaClient();
+app.use(express.json());
 
-router.use((err: any, req: Request, res: Response, next: NextFunction) => {
-	if (err instanceof ApiError) {
-		return res
-			.json({ error: err.pub ? err.message : "GENERIC_SERVER_ERROR" })
-			.status(500);
-	}
+router.get("/wallets", async (req, res) => {
+	const cachedValue = await client.get("data");
+
+	if (cachedValue) return res.json(cachedValue);
+
+	console.log("no cache. setting...");
+	const response = await prisma.account.findMany({
+		include: { exploits: true },
+	});
+
+	client.set("data", JSON.stringify(response));
+	return res.json(response);
 });
-
-router.post(
-	"/wallets",
-	validateRequest({ body: z.object({ address: z.string().optional() }) }),
-	async (req, res) => {
-		const address = req.body.address;
-
-		if (address)
-			return res.json(
-				await prisma.account.findUnique({
-					where: { address },
-					include: { exploits: true },
-				})
-			);
-
-		return res.json(
-			await prisma.account.findMany({ include: { exploits: true } })
-		);
-	}
-);
 
 app.use("/api", router);
 
 app.listen(3000);
-console.log("Listening");
