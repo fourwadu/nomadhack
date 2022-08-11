@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
 	content: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
+	mode: "jit",
 	theme: {
 		extend: {
 			colors: {
@@ -8,7 +9,7 @@ module.exports = {
 				"primary-light": "#15141A",
 				"primary-blue": "#6F8BD2",
 				"primary-pink": "#DB73C4",
-				gray: "#808080",
+				"primary-gray": "#808080",
 			},
 			backgroundColor: {},
 		},

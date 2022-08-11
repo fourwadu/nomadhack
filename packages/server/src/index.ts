@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import express, { Request, Response, NextFunction } from "express";
+import cors from "cors";
 import Redis from "ioredis";
 
 const app = express();
@@ -8,6 +9,7 @@ const client = new Redis();
 const router = express.Router();
 
 app.use(express.json());
+app.use(cors());
 
 router.get("/wallets", async (req, res) => {
 	const cachedValue = await client.get("data");
